@@ -8,38 +8,47 @@
 package com.example.security;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
+@Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-                .withUser("user")
-                .password("1234")
-                .roles("USER");
+
+    @Bean
+    public CustomerDetailService getCustomerDetailService(){
+        return new CustomerDetailService();
     }
 
     @Bean
-    public PasswordEncoder getPasswordEncoder(){
-        return NoOpPasswordEncoder.getInstance();
+    public BCryptPasswordEncoder getBCryptPasswordEncoder(){
+        return new BCryptPasswordEncoder();
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(authenticationProvider());
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests().antMatchers("/user").hasRole("USER")
+                .antMatchers("/admin").hasRole("ADMIN").and()
+                .formLogin().and().csrf().disable();
+    }
 
-        http.authorizeRequests()
-                .antMatchers("/user").hasRole("USER")
-                .and().formLogin().loginPage("/userLogin").defaultSuccessUrl("/user").failureForwardUrl("/loginPage?auth=fail")
-                .and().logout().logoutUrl("/logout").logoutSuccessUrl("/login");
-
+    public DaoAuthenticationProvider authenticationProvider(){
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+        daoAuthenticationProvider.setUserDetailsService(this.getCustomerDetailService());
+        daoAuthenticationProvider.setPasswordEncoder(getBCryptPasswordEncoder());
+        return daoAuthenticationProvider;
     }
 }

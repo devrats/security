@@ -12,14 +12,14 @@
     <title>Login Page</title>
 </head>
 <body>
-<h2 style="color: #00a6ff">Login to eHR Payroll</h2>
+<h2 style="color: orange">Login to eHR Payroll</h2>
 <c:if test="${'fail' eq param.auth}">
     <div style="color:red">
-        Login Failed!!<br />
+        Login Failed!!!<br />
         Reason : ${sessionScope["SPRING_SECURITY_LAST_EXCEPTION"].message}
     </div>
 </c:if>
-<form action="/admin" method="post">
+<form action="/user" method="post">
     <table frame="box" cellpadding="0" cellspacing="6">
         <tr>
             <td>Username:</td>
